@@ -53,7 +53,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
                 # wait for ack
                 ack, _ = udp_socket.recvfrom(PACKET_SIZE)
                 ack_id = int.from_bytes(ack[:SEQ_ID_SIZE], byteorder='big')
-                # print(ack_id, ack[SEQ_ID_SIZE:])
+                print(ack_id, ack[SEQ_ID_SIZE:])
 
 
                 # received the last ack for the entire data
@@ -63,6 +63,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
 
                 # correct ack_id was received, move on
                 if ack_id == (seq_id + len(data[seq_id : seq_id + MESSAGE_SIZE])):
+
                     # Calculate packet delay
                     current_delay = time.time() - per_packet_times[seq_id]
                     packet_delay += current_delay
@@ -94,14 +95,5 @@ avgPacketDelay = packet_delay / packets_sent
 avgJitter = jitter_sum / jitter_count
 performanceMetric = (0.2 * (throughput/2000)) + (0.1/avgJitter) + (0.8/avgPacketDelay)
 
-# Output format to read it better
-# print("===============Metrics Stop and Wait===============")
-# print(f"Total Time --> {total_time:.7f} seconds")
-# print(f"Throughput --> {throughput:.7f} Bytes/seconds")
-# print(f"Average Packet Delay --> {avgPacketDelay:.7f} seconds")
-# print(f"Average Jitter --> {avgJitter:.7f} seconds")
-# print(f"Performance Metric --> {performanceMetric:.7f}")
-# print("=====================================")
-
-# Output format for the metrics (how they want it in the assignment)
+# Output format for the metrics
 print(f"{throughput:.7f},{avgPacketDelay:.7f},{avgJitter:.7f},{performanceMetric:.7f}")

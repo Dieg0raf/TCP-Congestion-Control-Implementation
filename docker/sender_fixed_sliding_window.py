@@ -11,7 +11,6 @@ MESSAGE_SIZE = PACKET_SIZE - SEQ_ID_SIZE
 WINDOW_SIZE = 100
 
 # read data
-# 5319693 bytes
 with open('file.mp3', 'rb') as f:
     data = f.read()
 
@@ -142,14 +141,5 @@ avgPacketDelay = packet_delay / packets_sent
 avgJitter = jitter_sum / jitter_count
 performanceMetric = (0.2 * (throughput/2000)) + (0.1/avgJitter) + (0.8/avgPacketDelay)
 
-# Output format to read it better
-# print("===============Metrics TCP Tahoe===============")
-# print(f"Total Time --> {total_time:.7f} seconds")
-# print(f"Throughput --> {throughput:.7f} Bytes/seconds")
-# print(f"Average Packet Delay --> {avgPacketDelay:.7f} seconds")
-# print(f"Average Jitter --> {avgJitter:.7f} seconds")
-# print(f"Performance Metric --> {performanceMetric:.7f}")
-# print("=====================================")
-
-# Output format for the metrics (how they want it in the assignment)
+# Output format for the metrics
 print(f"{throughput:.7f},{avgPacketDelay:.7f},{avgJitter:.7f},{performanceMetric:.7f}")

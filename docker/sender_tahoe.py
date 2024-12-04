@@ -9,7 +9,6 @@ SEQ_ID_SIZE = 4
 MESSAGE_SIZE = PACKET_SIZE - SEQ_ID_SIZE
 
 # read data
-# 5319693 bytes
 with open('file.mp3', 'rb') as f:
     data = f.read()
 
@@ -26,7 +25,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
     # start sending data from 0th sequence
     seq_id = 0
     length_of_data = len(data)
-    print("Start sending")
 
     # helper variables
     end_time = None
@@ -67,16 +65,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
             # break if end of data (Don't over send)
             if seq_id_tmp >= length_of_data:
                 break
-        
-        # print("cwnd count: ", cwnd)
-        # print("About to send ", len(messages), " messages")
 
         # Keep track of last sequence id sent in window
         last_seq_id = seq_id_tmp
 
         # send messages
         for stid, message in messages:
-            # print("Sending ", stid)
             udp_socket.sendto(message, ('localhost', 5001))
             per_packet_times[stid] = time.time()
             packets_sent += 1
@@ -92,7 +86,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
                 
                 # extract ack id
                 ack_id = int.from_bytes(ack[:SEQ_ID_SIZE], byteorder='big')
-                # print(ack_id, ack[SEQ_ID_SIZE:])
 
                 # mark all packets before ack_id as acknowledged
                 for i in range(seq_id, ack_id, MESSAGE_SIZE):
@@ -113,12 +106,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
                         # Congestion Window Management
                         if cwnd < ssthresh:
                             cwnd *= 2
-                            # print("Threshold not reached: ", ssthresh)
-                            # print("increase exponential growth cwnd: ", cwnd)
                         else:
                             cwnd += 1
-                            # print("Threshold reached: ", ssthresh)
-                            # print("increase linear growth cwnd: ", cwnd)
                         
                 # received the last ack for the entire data
                 if ack_id >= length_of_data:
@@ -140,24 +129,19 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
                 if consecutive_ack_count >= 3:
                     message = int.to_bytes(ack_id, SEQ_ID_SIZE, byteorder='big', signed=True) + data[ack_id : ack_id + MESSAGE_SIZE]
                     udp_socket.sendto(message, ('localhost', 5001))
-                    # print("Resending", ack_id)
                     
                     # Reset cwnd and ssthresh
                     if cwnd > 1:
                         ssthresh = cwnd // 2
                         cwnd = 1
-                    # print("cwnd reset to 1")
-                    # print("ssthresh reset to ", ssthresh)
 
                     consecutive_ack_count = 0
                 
             except socket.timeout:
-                # print("TImeout")
                 # Only resend the first unacked message in the window
                 for sid, message in messages:
                     if not acks[sid]:
                         udp_socket.sendto(message, ('localhost', 5001))
-                        # print("Resending", sid)
                         break
 
                 # Reset cwnd and ssthresh
@@ -165,8 +149,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
                     ssthresh = cwnd // 2
                     cwnd = 1
 
-                # print("cwnd reset to 1")
-                # print("ssthresh reset to ", ssthresh)
                 last_ack_id = -1
                 consecutive_ack_count = 0
                 
@@ -175,7 +157,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
         
     # send final closing message
     udp_socket.sendto(int.to_bytes(-1, 4, signed=True, byteorder='big') + b'==FINACK==', ('localhost', 5001))
-    # print("Finished sending data")
 
 # Calculate metrics
 total_time = end_time - start_time
@@ -184,14 +165,5 @@ avgPacketDelay = packet_delay / packets_sent
 avgJitter = jitter_sum / jitter_count
 performanceMetric = (0.2 * (throughput/2000)) + (0.1/avgJitter) + (0.8/avgPacketDelay)
 
-# Output format to read it better
-# print("===============Metrics TCP Tahoe===============")
-# print(f"Total Time --> {total_time:.7f} seconds")
-# print(f"Throughput --> {throughput:.7f} Bytes/seconds")
-# print(f"Average Packet Delay --> {avgPacketDelay:.7f} seconds")
-# print(f"Average Jitter --> {avgJitter:.7f} seconds")
-# print(f"Performance Metric --> {performanceMetric:.7f}")
-# print("=====================================")
-
-# Output format for the metrics (how they want it in the assignment)
+# Output format for the metrics
 print(f"{throughput:.7f},{avgPacketDelay:.7f},{avgJitter:.7f},{performanceMetric:.7f}")
